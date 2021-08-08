@@ -3,7 +3,6 @@
   "version": "dev",
   "description": "Searches for mods and links them in reddit comments",
   "main": "src/app.ts",
-  "type": "module",
   "scripts": {
     "dev": "ts-node-dev src/app.ts",
     "build": "tsc"
