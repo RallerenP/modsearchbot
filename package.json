@@ -5,7 +5,7 @@
   "main": "app.js",
   "type": "module",
   "scripts": {
-    "dev": "ts-node-dev"
+    "dev": "ts-node-dev src/app.ts"
   },
   "repository": "https://github.com/RallerenP/modsearchbot.git",
   "author": "Rasmus Povlsen <git@rpovlsen.com>",
