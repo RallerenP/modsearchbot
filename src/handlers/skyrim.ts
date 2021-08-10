@@ -33,9 +33,9 @@ export default class SkyrimHandler {
                     .substring(2, mod_search.length - 2)
                     .trim()
 
-            if (search_terms.indexOf(cleaned_search) !== -1) return;
+            if (search_terms.indexOf(cleaned_search.toLowerCase()) !== -1) return;
 
-            search_terms.push(cleaned_search);
+            search_terms.push(cleaned_search.toLowerCase());
             pending_searches.push(this.search(cleaned_search))
         })
 
