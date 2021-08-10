@@ -1,5 +1,6 @@
 import { Comment, Submission } from 'snoowrap';
 import fetch, { Response } from "node-fetch";
+import { getDefaultFooter } from "../util";
 
 type SearchResult = {
     term: string
@@ -23,9 +24,19 @@ export default class SkyrimHandler {
 :-:|:-:|:-:
 `
         const pending_searches: Promise<SearchResult>[] = [];
+        const search_terms: string[] = [];
+
 
         mod_searches.forEach(mod_search => {
-            pending_searches.push(this.search(mod_search))
+            const cleaned_search =
+                mod_search
+                    .substring(2, mod_search.length - 2)
+                    .trim()
+
+            if (search_terms.indexOf(cleaned_search) !== -1) return;
+
+            search_terms.push(cleaned_search);
+            pending_searches.push(this.search(cleaned_search))
         })
 
         const results: SearchResult[] = await Promise.all(pending_searches);
@@ -38,25 +49,15 @@ export default class SkyrimHandler {
             reply += line;
         });
 
-        reply += `
-
----
-
-^(I'm a bot |) ^[source](https://github.com/RallerenP/modsearchbot) ^(| For bugs, questions and suggestions, please file an issue on github)
-`
+        reply += getDefaultFooter()
 
         item.reply(reply);
     }
 
     async search(search: string): Promise<SearchResult>
     {
-        const cleaned_search =
-            search
-                .substring(2, search.length - 2)
-                .trim()
-
         const cleaned_search_term =
-            cleaned_search
+            search
                 .split(' ')
                 .join(',');
 
@@ -79,7 +80,7 @@ export default class SkyrimHandler {
         }
 
         return {
-            term: `${cleaned_search} ^^[LE](https://www.nexusmods.com/skyrim/search/?gsearch=${cleaned_search.split(' ').join('+')}&gsearchtype=mods) ^^& ^^[SE](https://www.nexusmods.com/skyrimspecialedition/search/?gsearch=${cleaned_search.split(' ').join('+')}&gsearchtype=mods)`,
+            term: `${search} ^^[LE](https://www.nexusmods.com/skyrim/search/?gsearch=${search.split(' ').join('+')}&gsearchtype=mods) ^^& ^^[SE](https://www.nexusmods.com/skyrimspecialedition/search/?gsearch=${search.split(' ').join('+')}&gsearchtype=mods)`,
             LE: le_found,
             SE: se_found
         };
