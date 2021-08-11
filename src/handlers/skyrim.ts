@@ -17,7 +17,10 @@ export default class SkyrimHandler {
 
         const mod_searches = body.match(/{{.*?}}/g);
 
-        if (mod_searches === null) return;
+        if (mod_searches === null) {
+            this.log.debug(`Item contained no search tags! (${item.permalink})`);
+            return;
+        }
 
         let reply = `Search Term | ${this.sources.map(source => source.name).join(' | ')}
 :-:|:-:|:-:
