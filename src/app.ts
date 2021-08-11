@@ -16,6 +16,7 @@ const handlers = {
 
 const subreddits = [
     'modsearchbottests',
+    'skyrimmods'
 ]
 
 
@@ -63,10 +64,11 @@ function handlerProxy(item: Comment | Submission, submission = false) {
     switch (item.subreddit.display_name)
     {
         case 'modsearchbottests':
+        case 'skyrimmods':
             handlers.skyrim.handleItem(item, submission);
             break;
         default:
-            log.error(`Comment from unhandled subreddit: ${item.subreddit.name}, link ${item.permalink}`)
+            log.error(`Comment from unhandled subreddit: ${item.subreddit.display_name}, link ${item.permalink}`)
             break;
     }
 }
