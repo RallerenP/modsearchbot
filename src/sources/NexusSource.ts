@@ -4,6 +4,7 @@ import SearchResult from "./SearchResult";
 import fetch from "node-fetch";
 import { NoResultsError } from "../errors/NoResultsError";
 import { NexusSourceConfig } from "../Config";
+import { truncate } from "../util";
 
 type NexusResponse = {
     terms: string[],
@@ -38,11 +39,11 @@ export default class NexusSource implements ISource {
         const log = anylogger(`NS (gid: ${this.game_id})`);
 
         const formatted_search =
-            search_term
+            truncate(search_term, 50)
                 .split(' ')
                 .join(',')
                 .replace('-',',')
-                .replace(/[()]/g, '');
+                .replace(/[()]/g, 'CC');
 
 
         const url = `https://search.nexusmods.com/mods?terms=${formatted_search}&game_id=${this.game_id}&blocked_tags=&blocked_authors=&include_adult=1`
