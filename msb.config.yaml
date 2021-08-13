@@ -1,0 +1,11 @@
+subreddits:
+  modsearchbottests2:
+    sources:
+      - NexusLE:
+          type: "Nexus"
+          game_id: "110"
+          col_name: "LE Skyrim"
+      - NexusSE:
+          type: "Nexus"
+          game_id: "1704"
+          col_name: "SE Skyrim"
