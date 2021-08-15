@@ -39,11 +39,13 @@ export default class NexusSource implements ISource {
         const log = anylogger(`NS (gid: ${this.game_id})`);
 
         const formatted_search =
-            truncate(search_term, 50)
+            encodeURI(truncate(search_term, 50)
                 .split(' ')
                 .join(',')
                 .replace('-',',')
-                .replace(/[()]/g, 'CC');
+                .replace(/[()]/g, ''));
+
+
 
 
         const url = `https://search.nexusmods.com/mods?terms=${formatted_search}&game_id=${this.game_id}&blocked_tags=&blocked_authors=&include_adult=1`
