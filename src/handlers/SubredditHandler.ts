@@ -1,30 +1,38 @@
-import { Comment, Submission } from 'snoowrap';
-import { getDefaultFooter } from "../util";
-import NexusSearcher from "./searchers/nexus.searcher";
-import { NoResultsError } from "../errors/NoResultsError";
+import ISource from "../sources/ISource";
+import { SubredditConfig } from "../Config";
+import SourceFactory from "../sources/SourceFactory";
 import anylogger from "anylogger";
+import { Comment, Submission } from "snoowrap";
+import Item from "../Item";
+import { NoResultsError } from "../errors/NoResultsError";
+import { getDefaultFooter } from "../util";
 
-export default class SkyrimHandler {
-    private sources = [
-        new NexusSearcher('110', 'LE Nexus'),
-        new NexusSearcher('1704', 'SE Nexus')
-    ]
+export default class SubredditHandler {
+    private readonly sources: ISource[];
+    private readonly source_factory = new SourceFactory();
+    private log = anylogger("SubredditHandler")
 
-    log = anylogger('SkyrimHandler')
+    constructor(config: SubredditConfig) {
+        this.sources = config.sources.map(source => {
+            const inner = source[Object.keys(source)[0]];
+            return this.source_factory.get(inner.type, inner)
+        })
+    }
 
-    async handleItem(item: Comment | Submission, submission=false) {
-        let body = !submission ? (item as Comment).body : (item as Submission).selftext;
+    async handleItem(item: Item) {
+        const { body, link } = item;
 
         const mod_searches = body.match(/{{.*?}}/g);
 
         if (mod_searches === null) {
-            this.log.debug(`Item contained no search tags! (${item.permalink})`);
+            this.log.debug(`Item contained no search tags! (${link})`);
             return;
         }
 
         let reply = `Search Term | ${this.sources.map(source => source.name).join(' | ')}
 :-:|:-:|:-:
 `
+
         const pending: Promise<string>[] = [];
         const search_terms: string[] = [];
 
@@ -49,6 +57,7 @@ export default class SkyrimHandler {
         reply += getDefaultFooter()
 
         item.reply(reply);
+
     }
 
     async createRow(search_term: string): Promise<string> {

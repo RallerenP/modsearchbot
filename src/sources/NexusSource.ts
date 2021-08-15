@@ -1,8 +1,10 @@
-import ISearcher from "./ISearcher";
+import ISource from "./ISource";
 import anylogger from "anylogger";
 import SearchResult from "./SearchResult";
 import fetch from "node-fetch";
-import { NoResultsError } from "../../errors/NoResultsError";
+import { NoResultsError } from "../errors/NoResultsError";
+import { NexusSourceConfig } from "../Config";
+import { truncate } from "../util";
 
 type NexusResponse = {
     terms: string[],
@@ -24,18 +26,27 @@ type NexusResponse = {
     }[]
 }
 
+export default class NexusSource implements ISource {
+    private readonly game_id: string;
+    public readonly name: string;
 
-
-export default class NexusSearcher implements ISearcher {
-    constructor(private game_id: string, public readonly name: string = 'Nexus') { }
+    constructor(config: NexusSourceConfig) {
+        this.game_id = config.game_id;
+        this.name = config.col_name;
+    }
 
     async search(search_term: string): Promise<SearchResult> {
-        const log = anylogger(`NexusSearcher (gid: ${this.game_id})`);
+        const log = anylogger(`NS (gid: ${this.game_id})`);
 
         const formatted_search =
-            search_term
+            encodeURI(truncate(search_term, 50)
                 .split(' ')
-                .join(',');
+                .join(',')
+                .replace('-',',')
+                .replace(/[()]/g, ''));
+
+
+
 
         const url = `https://search.nexusmods.com/mods?terms=${formatted_search}&game_id=${this.game_id}&blocked_tags=&blocked_authors=&include_adult=1`
 
