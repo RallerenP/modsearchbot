@@ -54,6 +54,12 @@ export default class NexusSource implements ISource {
 
         const response = await fetch(url);
 
+        if (response.status !== 200) {
+            log.error(`Fetch to ${url} returned code ${response.status}`)
+            log.error(`Response: ${await response.text()}`)
+            throw new Error(`Fetch to ${url} returned code ${response.status}`);
+        }
+
         const results: NexusResponse = await response.json();
 
         if (results.total === 0) {

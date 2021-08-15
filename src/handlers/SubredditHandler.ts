@@ -6,6 +6,7 @@ import { Comment, Submission } from "snoowrap";
 import Item from "../Item";
 import { NoResultsError } from "../errors/NoResultsError";
 import { getDefaultFooter } from "../util";
+import { LoggedError } from "../errors/LoggedError";
 
 export default class SubredditHandler {
     private readonly sources: ISource[];
@@ -74,6 +75,9 @@ export default class SubredditHandler {
                 if (e instanceof NoResultsError)
                 {
                     row += ` | No Results :(`
+                }
+                else if (e instanceof LoggedError) {
+                    row += ` | An Error Occurred :(`
                 }
                 else
                 {
