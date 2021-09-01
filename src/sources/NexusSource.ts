@@ -29,10 +29,13 @@ type NexusResponse = {
 export default class NexusSource implements ISource {
     private readonly game_id: string;
     public readonly name: string;
+    private readonly config: NexusSourceConfig;
 
     constructor(config: NexusSourceConfig) {
         this.game_id = config.game_id;
         this.name = config.col_name;
+        this.config = config;
+
     }
 
     async search(search_term: string): Promise<SearchResult> {
@@ -43,12 +46,12 @@ export default class NexusSource implements ISource {
                 .split(' ')
                 .join(',')
                 .replace('-',',')
-                .replace(/[()]/g, ''));
+                .replace(/[().]/g, ''));
 
 
 
 
-        const url = `https://search.nexusmods.com/mods?terms=${formatted_search}&game_id=${this.game_id}&blocked_tags=&blocked_authors=&include_adult=1`
+        const url = `https://search.nexusmods.com/mods?terms=${formatted_search}&game_id=${this.game_id}&blocked_tags=&blocked_authors=&include_adult=${+this.config.include_adult}`
 
         log.debug('Querying nexusmods:  ' + url);
 
@@ -73,5 +76,9 @@ export default class NexusSource implements ISource {
             display_name: results.results[0].name,
             url: 'https://nexusmods.com' + results.results[0].url
         };
+    }
+
+    get_search_page_link(): string {
+        return "";
     }
 }

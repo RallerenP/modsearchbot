@@ -6,7 +6,7 @@ import { CommentStream, SubmissionStream } from "snoostorm";
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import yaml from 'js-yaml';
-import Config from "./Config";
+import Config, { ConfigFactory } from "./Config";
 import Item from "./Item";
 import HandlerManager from "./handlers/HandlerManager";
 
@@ -14,20 +14,16 @@ const log = anylogger('application');
 
 const BOT_START = Date.now() / 1000;
 
-const config_file = fs.readFileSync('./msb.config.yaml', 'utf-8');
-
-const config: Config = yaml.load(config_file) as Config;
+const config = ConfigFactory.create();
 
 const subreddits: string[] = ['modsearchbottests'];
 
-dotenv.config();
-
 const credentials = {
-    userAgent: process.env.USER_AGENT as string,
-    clientId: process.env.CLIENT_ID as string,
-    clientSecret: process.env.CLIENT_SECRET as string,
-    username: process.env.REDDIT_USERNAME as string,
-    password: process.env.REDDIT_PASSWORD as string
+    userAgent: config.account_config.user_agent,
+    clientId: config.account_config.client_id,
+    clientSecret: config.account_config.client_secret,
+    username: config.account_config.username,
+    password: config.account_config.password
 }
 
 const settings = {

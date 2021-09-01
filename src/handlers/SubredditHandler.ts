@@ -5,7 +5,7 @@ import anylogger from "anylogger";
 import { Comment, Submission } from "snoowrap";
 import Item from "../Item";
 import { NoResultsError } from "../errors/NoResultsError";
-import { getDefaultFooter } from "../util";
+import { getDefaultFooter, repeat } from "../util";
 import { LoggedError } from "../errors/LoggedError";
 
 export default class SubredditHandler {
@@ -30,8 +30,10 @@ export default class SubredditHandler {
             return;
         }
 
+
+
         let reply = `Search Term | ${this.sources.map(source => source.name).join(' | ')}
-:-:|:-:|:-:
+${repeat(':-:|', 1 + this.sources.length)}
 `
 
         const pending: Promise<string>[] = [];
