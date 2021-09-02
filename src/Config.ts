@@ -5,7 +5,7 @@ import Joi from "joi";
 
 export class ConfigFactory {
     public static create(): Config {
-        const config_file = fs.readFileSync('./msb.config.yaml', 'utf-8');
+        const config_file = fs.readFileSync(process.env.MODSEARCHBOT_CONFIG_FILE || './msb.config.yaml', 'utf-8');
 
         const original_config: Config = yaml.load(config_file) as Config;
 
@@ -36,11 +36,11 @@ export class ConfigFactory {
                                     col_name: Joi.string().default('Bing'),
                                     safe_search: Joi.string().valid('off', 'moderate', 'strict').default('off')
                                 }
-                            ))
-                    )
+                            )).required()
+                    ).required()
                 }
             ).required()
-        })
+        }).required();
 
         return Joi.attempt(original_config, config_schema);
     }

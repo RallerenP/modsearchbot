@@ -3,10 +3,7 @@ import "ulog"
 import anylogger from "anylogger";
 import Snoowrap, { Comment, Submission } from "snoowrap";
 import { CommentStream, SubmissionStream } from "snoostorm";
-import * as dotenv from 'dotenv';
-import * as fs from 'fs';
-import yaml from 'js-yaml';
-import Config, { ConfigFactory } from "./Config";
+import { ConfigFactory } from "./Config";
 import Item from "./Item";
 import HandlerManager from "./handlers/HandlerManager";
 
