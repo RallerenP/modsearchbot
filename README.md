@@ -69,28 +69,3 @@ See [Nexus Source Configuration](docs/sources/NEXUS.md)
 
 See [Bing Source Configuration](docs/sources/BING.md)
 
-#### Environment
-
-Create a ``.env`` file in root,
-
-````
-USER_AGENT=
-CLIENT_ID=
-CLIENT_SECRET=
-REDDIT_USERNAME=
-REDDIT_PASSWORD=
-````
-
-``USER_AGENT`` An unique string identifying the bot (eg. 'mod search bot, by u/RallerenP')
-
-``CLIENT_ID`` OAUTH client id,
-
-``CLIENT_SECRET`` OAUTH client secret
-
-``REDDIT_USERNAME`` username of the bot account
-
-``REDDIT_PASSWORD`` password of the bot account
-
-
-
-
