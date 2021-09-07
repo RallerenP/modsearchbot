@@ -14,6 +14,7 @@ A bot for searching mods from ~~nexusmods.com~~ multiple sources
 - [ ] Solve the problem of people accidentally replying to the bot
 - [ ] Provide links for manual search pages
 - [ ] Create docker image for easier deployment
+- [ ] Support for only posting NSFW links in NSFW posts
 
 ### Config
 
