@@ -1,4 +1,4 @@
-import ISource from "./ISource";
+import ISource, { Query } from "./ISource";
 import { BingSourceConfig, NexusSourceConfig } from "../Config";
 import SearchResult from "./SearchResult";
 import { truncate } from "../util";
@@ -19,26 +19,63 @@ type BingResponse = {
 export default class BingSource implements ISource {
     public readonly name: string;
 
-    private readonly config_id: string;
-    private readonly subscription_id: string;
-    private readonly safe_search: 'off' | 'moderate' | 'strict'
+    private readonly config_id: string | { nsfw_posts: string, sfw_posts: string };
+    private readonly subscription_id: string 
+    private readonly config: BingSourceConfig;
 
     constructor(config: BingSourceConfig) {
         this.name = config.col_name;
         this.config_id = config.custom_search_config_id;
         this.subscription_id = config.azure_resource_subscription_key;
-        this.safe_search = config.safe_search
+        this.config = config;
     }
 
-    async search(search_term: string): Promise<SearchResult> {
+    async search(query: Query): Promise<SearchResult> {
+        const { search_term, post_nsfw  } = query
         const log = anylogger(`BS (${this.name}`);
 
-        const query = encodeURIComponent(
+        const _query = encodeURIComponent(
             truncate(search_term, 50)
         )
 
+        let safe_search: 'off' | 'moderate' | 'strict' = 'strict';
+        let config_id = this.config.custom_search_config_id;
+
+        log.debug(`Bing source config safe_search option is ${JSON.stringify(this.config.safe_search)} and post is ${post_nsfw ? '' : 'not'} nsfw`);
+
+        if (
+            this.config.safe_search === 'off' ||
+            this.config.safe_search === 'moderate' ||
+            this.config.safe_search === 'strict'
+        ) {
+            safe_search = this.config.safe_search
+        }
+        else if (post_nsfw === true){
+            safe_search = this.config.safe_search.nsfw_posts;
+        } 
+        else if (post_nsfw === false){
+            safe_search = this.config.safe_search.non_nsfw_posts;
+        } 
+
+        if (
+            typeof this.config.custom_search_config_id === "string"
+        ) {
+            config_id = this.config.custom_search_config_id;
+        }
+        else if (post_nsfw === true){
+            config_id = this.config.custom_search_config_id.nsfw_posts;
+        } 
+        else if (post_nsfw === false){
+            config_id = this.config.custom_search_config_id.sfw_posts;
+        } 
+
+        log.debug(`safe_search set to ${safe_search}`)
+        log.debug(`config_id set to ${config_id}`)
+
         const url =
-            `https://api.bing.microsoft.com/v7.0/custom/search?q=${query}&customConfig=${this.config_id}&safeSearch=${this.safe_search}`;
+            `https://api.bing.microsoft.com/v7.0/custom/search?q=${_query}&customConfig=${config_id}&safeSearch=${safe_search}`;
+
+        log.debug(`querying ${url}`)
 
         const headers = {
             'Ocp-Apim-Subscription-Key': this.subscription_id
@@ -55,6 +92,8 @@ export default class BingSource implements ISource {
         }
 
         const json: BingResponse = await response.json() as BingResponse;
+
+        //console.log(json.webPages.value[0])
 
         if (!json.webPages) {
             throw new NoResultsError(`No results for query ${search_term}`, this.name)

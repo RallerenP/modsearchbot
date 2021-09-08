@@ -27,14 +27,32 @@ export class ConfigFactory {
                                     type: Joi.string().valid('Nexus').required(),
                                     game_id: Joi.string().required(),
                                     col_name: Joi.string().default('Nexus'),
-                                    include_adult: Joi.boolean().default(true)
+                                    include_adult: Joi.alternatives().try(
+                                        Joi.boolean(),
+                                        Joi.object({
+                                            nsfw_posts: Joi.boolean().default(true),
+                                            non_nsfw_posts: Joi.boolean().default(false)
+                                        })
+                                    ).default({nsfw_posts: true, non_nsfw_posts: false})
                                 },
                                 {
                                     type: Joi.string().valid('Bing').required(),
-                                    custom_search_config_id: Joi.string().required(),
+                                    custom_search_config_id: Joi.alternatives().try(
+                                        Joi.string(),
+                                        Joi.object({
+                                            nsfw_posts: Joi.string(),
+                                            sfw_posts: Joi.string()
+                                        })
+                                    ).required(),
                                     azure_resource_subscription_key: Joi.string().required(),
                                     col_name: Joi.string().default('Bing'),
-                                    safe_search: Joi.string().valid('off', 'moderate', 'strict').default('off')
+                                    safe_search: Joi.alternatives().try(
+                                        Joi.string().valid('off', 'moderate', 'strict'),
+                                        Joi.object({
+                                            nsfw_posts: Joi.string().valid('off', 'moderate', 'strict').default('off'),
+                                            non_nsfw_posts: Joi.string().valid('off', 'moderate', 'strict').default('strict')
+                                        })
+                                    ).default({nsfw_posts: 'off', non_nsfw_posts: 'strict'})
                                 }
                             )).required()
                     ).required()
@@ -71,15 +89,24 @@ export type NexusSourceConfig = {
     type: SourceType,
     game_id: string,
     col_name: string,
-    include_adult: boolean
+    include_adult: boolean | {
+        nsfw_posts: boolean
+        non_nsfw_posts: boolean
+    }
 }
 
 export type BingSourceConfig = {
     type: SourceType,
-    custom_search_config_id: string,
+    custom_search_config_id: string | {
+        nsfw_posts: string,
+        sfw_posts: string
+    },
     azure_resource_subscription_key: string,
-    col_name: string
-    safe_search: 'off' | 'moderate' | 'strict'
+    col_name: string,
+        safe_search: 'off' | 'moderate' | 'strict' | {
+        nsfw_posts: 'off' | 'moderate' | 'strict'
+        non_nsfw_posts: 'off' | 'moderate' | 'strict'
+    }
 }
 
 export type SourceType = 'Nexus' | 'Bing'

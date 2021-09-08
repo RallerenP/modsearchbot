@@ -36,19 +36,33 @@ const client = new Snoowrap(credentials)
 const comments = new CommentStream(client, settings);
 const submissions = new SubmissionStream(client, settings);
 
-comments.on('item', (item: Comment) => {
+comments.on('item', async (item: Comment) => {
+    if (item.created < BOT_START)
+    {
+        log.warn('Recieved comment or submission made before bot start!')
+        return;
+    }
+    
     log.debug(`Comment on ${item.subreddit.display_name}`)
+    
     handlerProxy({
         body: item.body,
         link: item.permalink,
         created: item.created_utc,
         author: item.author,
         subreddit: item.subreddit,
+        //is_nsfw: true,
+        is_nsfw: await client.getSubmission(item.permalink.match(/(?<=\/r\/.{1,20}\/comments\/).*(?=\/.*\/.*\/)/)![0]).over_18,
         reply: (text: string) => item.reply(text)
     });
 })
 
 submissions.on('item', (item: Submission) => {
+    if (item.created < BOT_START)
+    {
+        log.warn('Recieved comment or submission made before bot start!')
+        return;
+    }
     log.debug(`Submission on ${item.subreddit.display_name}`)
     handlerProxy({
         body: item.selftext,
@@ -56,6 +70,7 @@ submissions.on('item', (item: Submission) => {
         created: item.created_utc,
         author: item.author,
         subreddit: item.subreddit,
+        is_nsfw: item.over_18,
         reply: (text: string) => item.reply(text)
     }, true);
 })
@@ -64,11 +79,7 @@ function handlerProxy(item: Item, submission = false) {
     if (item.author.name == "modsearchbot") return; // Don't analyse your own comments, this should prevent accidental infinite comment chains.
 
     // Avoid reacting to comments from before bot was started (though theoretically that shouldn't happen)
-    if (item.created < BOT_START)
-    {
-        log.warn('Recieved comment or submission made before bot start!')
-        return;
-    }
+    
 
     const handler = HandlerManager.instance.get(item.subreddit.display_name);
 

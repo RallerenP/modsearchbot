@@ -6,5 +6,6 @@ export default interface Item {
     created: number;
     author: RedditUser
     subreddit: Subreddit
+    is_nsfw: boolean
     reply(text: string): Promise<ReplyableContent<Comment | Submission>>
 }

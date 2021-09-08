@@ -1,4 +1,4 @@
-import ISource from "./ISource";
+import ISource, { Query } from "./ISource";
 import anylogger from "anylogger";
 import SearchResult from "./SearchResult";
 import fetch from "node-fetch";
@@ -38,7 +38,8 @@ export default class NexusSource implements ISource {
 
     }
 
-    async search(search_term: string): Promise<SearchResult> {
+    async search(query: Query): Promise<SearchResult> {
+        const { search_term, post_nsfw } = query;
         const log = anylogger(`NS (gid: ${this.game_id})`);
 
         const formatted_search =
@@ -48,10 +49,15 @@ export default class NexusSource implements ISource {
                 .replace('-',',')
                 .replace(/[().]/g, ''));
 
+        let include_adult: boolean = false;
+
+        if (this.config.include_adult === true) include_adult = true;
+        else if (this.config.include_adult === false) include_adult = false;
+        else if (post_nsfw === true && this.config.include_adult.nsfw_posts === true) include_adult = true;
+        else if (post_nsfw === false && this.config.include_adult.non_nsfw_posts === true) include_adult = true;
 
 
-
-        const url = `https://search.nexusmods.com/mods?terms=${formatted_search}&game_id=${this.game_id}&blocked_tags=&blocked_authors=&include_adult=${+this.config.include_adult}`
+        const url = `https://search.nexusmods.com/mods?terms=${formatted_search}&game_id=${this.game_id}&blocked_tags=&blocked_authors=&include_adult=${+include_adult}`
 
         log.debug('Querying nexusmods:  ' + url);
 

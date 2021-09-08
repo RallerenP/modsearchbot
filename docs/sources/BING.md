@@ -23,7 +23,17 @@ subreddits:
 
 `col_name` *Optional*, Display name of the column (Default: "*Nexus*")
 
-`safe_search` *Optional*, Whether or not to include adult content from this source. (Default: "*off*") (Accepted values: "*off*", "*moderate*", "*strict*")
+`safe_search` *Optional*, Whether or not to include adult content from this source. (Accepted values: "*off*", "*moderate*", "*strict*")
+
+`safe_search` Can also be divided into 
+
+```yaml
+safe_search:
+  nsfw_posts: 'off'
+  non_nsfw_psots: 'strict'
+```
+
+This is the default values
 
 ---
 

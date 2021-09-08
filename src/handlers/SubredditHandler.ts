@@ -1,4 +1,4 @@
-import ISource from "../sources/ISource";
+import ISource, { Query } from "../sources/ISource";
 import { SubredditConfig } from "../Config";
 import SourceFactory from "../sources/SourceFactory";
 import anylogger from "anylogger";
@@ -48,7 +48,7 @@ ${repeat(':-:|', 1 + this.sources.length)}
             if (search_terms.indexOf(cleaned_search.toLowerCase()) !== -1) return;
 
             search_terms.push(cleaned_search.toLowerCase());
-            pending.push(this.createRow(cleaned_search));
+            pending.push(this.createRow({search_term: cleaned_search, post_nsfw: item.is_nsfw}));
         })
 
         const rows: string[] = await Promise.all(pending);
@@ -63,14 +63,14 @@ ${repeat(':-:|', 1 + this.sources.length)}
 
     }
 
-    async createRow(search_term: string): Promise<string> {
-        let row = search_term;
+    async createRow(query: Query): Promise<string> {
+        let row = query.search_term;
 
         for (let i = 0; i < this.sources.length; i++) {
             const source = this.sources[i];
 
             try {
-                const result = await source.search(search_term);
+                const result = await source.search(query);
 
                 row += ` | [${result.display_name}](${result.url})`;
             } catch (e) {
@@ -93,3 +93,4 @@ ${repeat(':-:|', 1 + this.sources.length)}
         return row;
     }
 }
+

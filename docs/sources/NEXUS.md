@@ -12,6 +12,7 @@ subreddits:
           type: "Nexus"
           game_id: "110"
           col_name: "LE Skyrim"
+          include_adult: false
 ````
 
 `type: "Nexus"` *Required*, marks the source to search from the Nexus
@@ -20,7 +21,18 @@ subreddits:
 
 `col_name` *Optional*, Display name of the column (Default: "*Nexus*")
 
-`include_adult` *Optional*, Whether or not to include adult content from this source. (Default: *true*)
+`include_adult` *Optional*, Whether or not to include adult content from this source.
+
+`include_adult` can also be divided into
+
+```yaml
+include_adult:
+  nsfw_posts: true
+  non_nsfw_posts: false
+```
+
+This is the default values
+
 
 
 
