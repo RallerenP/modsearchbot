@@ -21,13 +21,11 @@ export default class BingSource implements ISource {
 
     private readonly config_id: string | { nsfw_posts: string, sfw_posts: string };
     private readonly subscription_id: string 
-    private readonly config: BingSourceConfig;
 
-    constructor(config: BingSourceConfig) {
+    constructor(public config: BingSourceConfig) {
         this.name = config.col_name;
         this.config_id = config.custom_search_config_id;
         this.subscription_id = config.azure_resource_subscription_key;
-        this.config = config;
     }
 
     async search(query: Query): Promise<SearchResult> {

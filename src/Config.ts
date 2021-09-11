@@ -33,7 +33,8 @@ export class ConfigFactory {
                                             nsfw_posts: Joi.boolean().default(true),
                                             non_nsfw_posts: Joi.boolean().default(false)
                                         })
-                                    ).default({nsfw_posts: true, non_nsfw_posts: false})
+                                    ).default({nsfw_posts: true, non_nsfw_posts: false}),
+                                    limit: Joi.boolean().default(false)
                                 },
                                 {
                                     type: Joi.string().valid('Bing').required(),
@@ -52,7 +53,8 @@ export class ConfigFactory {
                                             nsfw_posts: Joi.string().valid('off', 'moderate', 'strict').default('off'),
                                             non_nsfw_posts: Joi.string().valid('off', 'moderate', 'strict').default('strict')
                                         })
-                                    ).default({nsfw_posts: 'off', non_nsfw_posts: 'strict'})
+                                    ).default({nsfw_posts: 'off', non_nsfw_posts: 'strict'}),
+                                    limit: Joi.boolean().default(true)
                                 }
                             )).required()
                     ).required()
@@ -85,29 +87,31 @@ export type SubredditConfig = {
     ]
 }
 
-export type NexusSourceConfig = {
+export type BaseSourceConfig = {
     type: SourceType,
+    col_name: string
+    limit: boolean
+}
+
+export type NexusSourceConfig = {
     game_id: string,
-    col_name: string,
     include_adult: boolean | {
         nsfw_posts: boolean
         non_nsfw_posts: boolean
     }
-}
+} & BaseSourceConfig
 
 export type BingSourceConfig = {
-    type: SourceType,
     custom_search_config_id: string | {
         nsfw_posts: string,
         sfw_posts: string
     },
     azure_resource_subscription_key: string,
-    col_name: string,
-        safe_search: 'off' | 'moderate' | 'strict' | {
+    safe_search: 'off' | 'moderate' | 'strict' | {
         nsfw_posts: 'off' | 'moderate' | 'strict'
         non_nsfw_posts: 'off' | 'moderate' | 'strict'
     }
-}
+} & BaseSourceConfig
 
 export type SourceType = 'Nexus' | 'Bing'
 

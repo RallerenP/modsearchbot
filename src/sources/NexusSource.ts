@@ -29,13 +29,10 @@ type NexusResponse = {
 export default class NexusSource implements ISource {
     private readonly game_id: string;
     public readonly name: string;
-    private readonly config: NexusSourceConfig;
 
-    constructor(config: NexusSourceConfig) {
+    constructor(public config: NexusSourceConfig) {
         this.game_id = config.game_id;
         this.name = config.col_name;
-        this.config = config;
-
     }
 
     async search(query: Query): Promise<SearchResult> {

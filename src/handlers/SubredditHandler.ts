@@ -66,11 +66,23 @@ ${repeat(':-:|', 1 + this.sources.length)}
     async createRow(query: Query): Promise<string> {
         let row = query.search_term;
 
+        let hasFoundExact = false;
+
         for (let i = 0; i < this.sources.length; i++) {
             const source = this.sources[i];
 
             try {
+                if (hasFoundExact && source.config.limit) {
+                    this.log.debug(`Skipping ${source.name} for search ${query.search_term}, as previous sources got the exact search term, and this source's config was set to 'limited = true'`)
+
+                    row += ` | Skipped[^Why?](https://github.com/RallerenP/modsearchbot/blob/main/docs/SEARCH.md#why-was-my-search-skipped)`
+                    continue;
+                }
                 const result = await source.search(query);
+
+                if (result.display_name === query.search_term) {
+                    hasFoundExact = true;
+                }
 
                 row += ` | [${result.display_name}](${result.url})`;
             } catch (e) {
