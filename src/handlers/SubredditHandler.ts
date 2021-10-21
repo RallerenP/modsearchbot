@@ -5,8 +5,9 @@ import anylogger from "anylogger";
 import { Comment, Submission } from "snoowrap";
 import Item from "../Item";
 import { NoResultsError } from "../errors/NoResultsError";
-import { getDefaultFooter, repeat } from "../util";
+import { getDefaultFooter, getDefaultNSFWWarning, repeat } from "../util";
 import { LoggedError } from "../errors/LoggedError";
+import TableFormatter from "../outputs/TableFormatter";
 
 export default class SubredditHandler {
     private readonly sources: ISource[];
@@ -30,32 +31,43 @@ export default class SubredditHandler {
             return;
         }
 
+        let reply = TableFormatter.formatHeader(['Search Term', ...this.sources.map(source => source.name)]);
+        
+//         `Search Term | ${this.sources.map(source => source.name).join(' | ')}
+// ${repeat(':-:|', 1 + this.sources.length)}
+// `
 
+        const default_rows = await this.search(mod_searches, item);
 
-        let reply = `Search Term | ${this.sources.map(source => source.name).join(' | ')}
-${repeat(':-:|', 1 + this.sources.length)}
-`
-
-        const pending: Promise<string>[] = [];
-        const search_terms: string[] = [];
-
-        mod_searches.forEach(mod_search => {
-            const cleaned_search =
-                mod_search
-                    .substring(2, mod_search.length - 2)
-                    .trim()
-
-            if (search_terms.indexOf(cleaned_search.toLowerCase()) !== -1) return;
-
-            search_terms.push(cleaned_search.toLowerCase());
-            pending.push(this.createRow({search_term: cleaned_search, post_nsfw: item.is_nsfw}));
-        })
-
-        const rows: string[] = await Promise.all(pending);
-
-        rows.forEach(row => {
+        default_rows.forEach(row => {
             reply += row + '\n';
         });
+
+        if (!item.is_nsfw) {
+            const sources: ISource[] = this.sources.filter(source => source.name !== 'Bing');
+
+            const nsfw_rows = await this.search(mod_searches, item, {sources, force_adult: true, censor: true});
+            const def = await this.search(mod_searches, item, {sources: sources, censor: true});
+
+            let diff = false;
+
+            for (let i = 0; i < nsfw_rows.length; i++) {
+                const row = nsfw_rows[i];
+                
+                if (row !== def[i]) diff = true;
+            }
+
+            if (diff) {
+                reply += getDefaultNSFWWarning();
+
+                reply += TableFormatter.formatHeader(['Search Term', ...sources.map(source => source.name)]);
+            
+                nsfw_rows.forEach(row => {
+                    reply += row + '\n';
+                });
+            }
+            
+        }
 
         reply += getDefaultFooter()
 
@@ -63,13 +75,38 @@ ${repeat(':-:|', 1 + this.sources.length)}
 
     }
 
-    async createRow(query: Query): Promise<string> {
+    
+    private async search(mod_searches: RegExpMatchArray, item: Item, options?: SearchOptions) {
+        const search_terms: string[] = [];
+        const pending: Promise<string>[] = [];
+
+        if (!options) options={force_adult: false}
+
+        mod_searches.forEach(mod_search => {
+            const cleaned_search = mod_search
+                .substring(2, mod_search.length - 2)
+                .trim();
+
+            if (search_terms.indexOf(cleaned_search.toLowerCase()) !== -1)
+                return;
+
+            search_terms.push(cleaned_search.toLowerCase());
+            pending.push(this.createRow({ search_term: cleaned_search, post_nsfw: item.is_nsfw || options!.force_adult! }, options));
+        });
+
+        return await Promise.all(pending);
+    }
+
+    async createRow(query: Query, options?: SearchOptions): Promise<string> {
         let row = query.search_term;
+        const results = [];
 
         let hasFoundExact = false;
 
-        for (let i = 0; i < this.sources.length; i++) {
-            const source = this.sources[i];
+        const sourcesToSearch = options?.sources || this.sources;
+
+        for (let i = 0; i < sourcesToSearch.length; i++) {
+            const source = sourcesToSearch[i];
 
             try {
                 if (hasFoundExact && source.config.limit) {
@@ -79,12 +116,13 @@ ${repeat(':-:|', 1 + this.sources.length)}
                     continue;
                 }
                 const result = await source.search(query);
+                results.push(result);
 
                 if (result.display_name === query.search_term) {
                     hasFoundExact = true;
                 }
 
-                row += ` | [${result.display_name}](${result.url})`;
+                row += ` | ${options?.censor ? '>!' : ''}[${result.display_name}](${result.url})${options?.censor ? '!<' : ''}`;
             } catch (e) {
                 if (e instanceof NoResultsError)
                 {
@@ -106,3 +144,8 @@ ${repeat(':-:|', 1 + this.sources.length)}
     }
 }
 
+type SearchOptions = {
+    force_adult?: boolean;
+    sources?: ISource[]
+    censor?: boolean;
+}
